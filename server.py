@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from gevent.pywsgi import WSGIServer
-from gevent import monkey;
-monkey.patch_all()
+from gevent import monkey; monkey.patch_all()
 import urlparse
 import soundcloud
 import requests
@@ -13,7 +12,11 @@ import local
 def application(env, start_response):
     
     # read POST data:
-    data = urlparse.parse_qs(env["wsgi.input"].read());
+    try:
+        data = urlparse.parse_qs(env["wsgi.input"].read());
+    except:
+        start_response('500 Internal Server Error',[('content-type', 'text/html')])
+        return 'POST request data error.'     
     
     # GET sound File:
     try:
@@ -23,7 +26,7 @@ def application(env, start_response):
         file.close()
         
     except:
-        start_response('500 Internal Server Error', [('Content-Type', 'application/json')])
+        start_response('500 Internal Server Error',[('content-type', 'text/html')])
         return 'Retrieving file from sender failed.'
     
     # Authenticate with Soundcloud
@@ -36,7 +39,7 @@ def application(env, start_response):
             )
             
     except:
-        start_response('500 Internal Server Error', [('Content-Type', 'application/json')])
+        start_response('500 Internal Server Error',[('content-type', 'text/html')])
         return 'Unable to authenticate with soundcloud.'
     
     # POST file to Soundcloud
@@ -49,7 +52,7 @@ def application(env, start_response):
                 }
             )
     except:
-        start_response('500 Internal Server Error', [('Content-Type', 'application/json')])
+        start_response('500 Internal Server Error',[('content-type', 'text/html')])
         return 'Unable to upload to soundcloud.'
     
     #success
